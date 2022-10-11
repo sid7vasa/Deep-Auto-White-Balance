@@ -60,27 +60,27 @@ def upBlock(x1, x2, out_channels):
 
 # Returns output, not keras.model instance
 def outputBlock(x1, x2, out_channels):
-    x = Concatenate())[x1, x2], axis = 1) # Todo: Keras follows NHCW compared to NCHW
-    block = tf.keras.Sequential()
-    block.add(doubleConvBlock(x1.shape[-1]))
-    block.add(Conv2D(filters=x1.shape[-1]*2, kernel_size=(2,2), padding='same'))
+    x = Concatenate()([x1, x2], axis = 1) # Todo: Keras follows NHCW compared to NCHW
+    x = doubleConvBlock(x1.shape[-1])(x)
+    x = Conv2D(filters=x1.shape[-1]*2, kernel_size=(2,2), padding='same')(x)
+    return x
     
-class deepWBnet():
-    def __init__(input_shape):
+class DeepWBnet():
+    def __init__(self, input_shape):
         self.input_shape = input_shape
     
-    def get_model(): 
+    def get_model(self): 
         inputs = Input(shape=self.input_shape)
         encoder_inc = doubleConvBlock(24)(inputs)
         encoder_down1 = downBlock(48)(encoder_inc)
         encoder_down2 = downBlock(96)(encoder_down1)
         encoder_down3 = downBlock(192)(encoder_down2)
         encoder_bridge_down = bridgeDown(384)(encoder_down3)
-        encoder_bridge_up = bridgeUp(192)(encoder_bridge_down)
-        up_block1 = upBlock(encoder_bridge_up, encoder_bridge_up, 96)
-        up_block1 = upBlock(encoder_bridge_up, encoder_bridge_up, 96)
-        up_block1 = upBlock(encoder_bridge_up, encoder_bridge_up, 96)
-        up_block1 = upBlock(encoder_bridge_up, encoder_bridge_up, 96)
+        decoder_bridge_up = bridgeUp(192)(encoder_bridge_down)
+        decoder_up1 = upBlock(decoder_bridge_up, encoder_down3, 96)
+        decoder_up2 = upBlock(decoder_up1, encoder_down2, 48)
+        decoder_up3 = upBlock(decoder_up2, encoder_down1, 24)
+        outputs = outputBlock(decoder_up3, encoder_inc, self.input_shape[3])
         model = tf.keras.Model(inputs, outputs)
         return model
         
