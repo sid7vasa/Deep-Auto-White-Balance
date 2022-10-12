@@ -17,6 +17,9 @@ from models.unet import Generator, doubleConvBlock, downBlock, DeepWBnet
 print(tf.test.is_gpu_available())
 
 
+# def train(model, epochs, batch_size, lr, val_freq):
+
+
 if __name__ == "__main__":
     net = DeepWBnet(input_shape=(512, 512, 3)).get_model()
     print(net.summary())

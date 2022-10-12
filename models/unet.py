@@ -18,74 +18,84 @@ from tensorflow.keras.layers import Dropout
 from tensorflow.keras.layers import BatchNormalization
 
 
-def doubleConvBlock(out_channels):
-    block = tf.keras.Sequential()
-    block.add(Conv2D(filters=out_channels, kernel_size=(3, 3), padding='same'))
+def doubleConvBlock(out_channels, name=None):
+    if name is not None:
+        block = tf.keras.Sequential(name=name)
+    else:
+        block = tf.keras.Sequential()
+    block.add(Conv2D(filters=out_channels, kernel_size=(
+        3, 3), padding='same'))
     block.add(ReLU())
-    block.add(Conv2D(filters=out_channels, kernel_size=(3, 3), padding='same'))
+    block.add(Conv2D(filters=out_channels, kernel_size=(
+        3, 3), padding='same'))
     block.add(ReLU())
     return block
 
 
-def downBlock(out_channels):
-    block = tf.keras.Sequential()
+def downBlock(out_channels, name="downBlock"):
+    block = tf.keras.Sequential(name=name)
     block.add(MaxPool2D(pool_size=(2, 2)))
-    block.add(doubleConvBlock(out_channels))
+    block.add(doubleConvBlock(out_channels, name=name+"_doub_conv"))
     return block
 
 
-def bridgeDown(out_channels):
-    block = tf.keras.Sequential()
+def bridgeDown(out_channels, name="bridgeDown"):
+    block = tf.keras.Sequential(name=name)
     block.add(MaxPool2D(pool_size=(2, 2)))
     block.add(Conv2D(filters=out_channels, kernel_size=(3, 3), padding='same'))
     block.add(ReLU())
     return block
 
 
-def bridgeUp(out_channels):
-    block = tf.keras.Sequential()
+def bridgeUp(out_channels, name="bridgeDown"):
+    block = tf.keras.Sequential(name=name)
     block.add(Conv2D(filters=out_channels, kernel_size=(3, 3), padding='same'))
     block.add(ReLU())
     block.add(Conv2DTranspose(filters=out_channels,
-              kernel_size=(3, 3), strides=(2, 2), padding='same'))
+                              kernel_size=(2, 2), strides=(2, 2), padding='same'))
     return block
 
 # Returns output, not keras.model instance
+
+
 def upBlock(x1, x2, out_channels):
-    x = Concatenate()([x1, x2], axis=1) # Todo: Keras follows NHCW compared to NCHW
+    x = Concatenate()([x1, x2])
     conv1 = doubleConvBlock(x1.shape[-1])(x)
     cvt = Conv2DTranspose(out_channels, kernel_size=(
-        3, 3), strides=(2, 2))(conv1)
-    return ReLU(cvt)
+        2, 2), strides=(2, 2))(conv1)
+    return ReLU()(cvt)
 
 # Returns output, not keras.model instance
+
+
 def outputBlock(x1, x2, out_channels):
-    x = Concatenate()([x1, x2], axis = 1) # Todo: Keras follows NHCW compared to NCHW
-    x = doubleConvBlock(x1.shape[-1])(x)
-    x = Conv2D(filters=x1.shape[-1]*2, kernel_size=(2,2), padding='same')(x)
+    x = Concatenate()([x1, x2])
+    x = doubleConvBlock(out_channels)(x)
+    x = Conv2D(filters=out_channels, kernel_size=(1, 1), padding='same')(x)
     return x
-    
+
+
 class DeepWBnet():
     def __init__(self, input_shape):
         self.input_shape = input_shape
-    
-    def get_model(self): 
-        inputs = Input(shape=self.input_shape)
-        encoder_inc = doubleConvBlock(24)(inputs)
-        encoder_down1 = downBlock(48)(encoder_inc)
-        encoder_down2 = downBlock(96)(encoder_down1)
-        encoder_down3 = downBlock(192)(encoder_down2)
-        encoder_bridge_down = bridgeDown(384)(encoder_down3)
-        decoder_bridge_up = bridgeUp(192)(encoder_bridge_down)
+
+    def get_model(self):
+        inputs = Input(shape=self.input_shape, name="Main Input")
+        encoder_inc = doubleConvBlock(24, name="encoder_inc")(inputs)
+        encoder_down1 = downBlock(48, name="encoder_down1")(encoder_inc)
+        encoder_down2 = downBlock(96, name="encoder_down2")(encoder_down1)
+        encoder_down3 = downBlock(192, name="encoder_down3")(encoder_down2)
+        encoder_bridge_down = bridgeDown(
+            384, name="encoder_bridge_down")(encoder_down3)
+        decoder_bridge_up = bridgeUp(
+            192, name="decoder_bridge_up")(encoder_bridge_down)
         decoder_up1 = upBlock(decoder_bridge_up, encoder_down3, 96)
         decoder_up2 = upBlock(decoder_up1, encoder_down2, 48)
         decoder_up3 = upBlock(decoder_up2, encoder_down1, 24)
-        outputs = outputBlock(decoder_up3, encoder_inc, self.input_shape[3])
+        outputs = outputBlock(decoder_up3, encoder_inc, self.input_shape[2])
         model = tf.keras.Model(inputs, outputs)
         return model
-        
-        
- 
+
 
 def ConvBNRelu(filters=64, kernel_size=(4, 4), stride=(2, 2), padding="same", init=RandomNormal(stddev=0.2), batch_norm=True):
     """
@@ -111,7 +121,7 @@ def ConvBNRelu(filters=64, kernel_size=(4, 4), stride=(2, 2), padding="same", in
     """
     block = tf.keras.Sequential()
     block.add(Conv2D(filters, kernel_size, strides=stride,
-              padding=padding, kernel_initializer=init))
+                     padding=padding, kernel_initializer=init))
     if batch_norm:
         block.add(BatchNormalization())
     block.add(LeakyReLU(alpha=0.2))
