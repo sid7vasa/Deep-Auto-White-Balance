@@ -10,6 +10,7 @@ import logging
 
 import tensorflow as tf
 from tqdm import tqdm
+from tensorflow.keras.utils import plot_model
 
 from models.unet import Generator, doubleConvBlock, downBlock, DeepWBnet
 
@@ -17,9 +18,6 @@ print(tf.test.is_gpu_available())
 
 
 if __name__ == "__main__":
-    net = Generator(input_shape=(512, 512, 3)).get_model()
+    net = DeepWBnet(input_shape=(512, 512, 3)).get_model()
     print(net.summary())
-    db_conv = downBlock(128)
-    db_conv.build(input_shape=(1, 512, 512, 3))
-    print(db_conv.summary())
-  
+    plot_model(net, "unet.png")
