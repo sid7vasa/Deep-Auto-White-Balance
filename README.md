@@ -20,17 +20,6 @@ Class: CS7180 - Advanced Perception <br>
 - Time travel days:
   - 2 days
 ### RESULTS:
-
-Areas where the network works well:
-- Building outlines
-- Water bodies
-- Grass Outfields
-
-Areas where the network does not work well:
-- Roads occluded, Road classification
-- Dark green trees mis classified as water
-- Soft boundaries
-
 Examples: <br>
 ![image info](out/result_1.png)
 ![image info](out/result_2.png)
