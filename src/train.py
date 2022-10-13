@@ -19,6 +19,7 @@ from dataset.utils import generate_tfrecords, load_tfrecords
 
 print(tf.test.is_gpu_available())
 
+
 def get_dataset(parameters):
     """
     Loads TF records (If not exists, creates TF Records).
@@ -49,6 +50,7 @@ def get_dataset(parameters):
     val_dataset = val_dataset.batch(parameters['dataset']['batch_size'])
     return train_dataset, val_dataset
 
+
 def visualize_datasets(train_dataset, val_dataset):
     """
     Visualize an example in the dataset by reversing the preprocessing steps.
@@ -73,15 +75,63 @@ def visualize_datasets(train_dataset, val_dataset):
         plt.show()
 
 
+def plot_sample_outputs(net, dataset, val=False):
+    """
+    Takes random examples from the input tf.data instance and then plots the 
+    generated output, corresponding inputs and ground truths.
+    Parameters
+    ----------
+    dataset : tf.data validation instance
+        DESCRIPTION.
+    val : is validation dataset instance
+    Returns
+    -------
+    img : TYPE
+        DESCRIPTION.
+    """
+    _, axs = plt.subplots(1, 3, figsize=(8, 24))
+    axs = axs.flatten()
+
+    def un_normalize(img):
+        img = (img * 127.5) + 127.5
+        img = np.array(img, dtype=np.uint8)[0]
+        return img
+    if val:
+        dataset = dataset.shuffle(buffer_size=100)
+
+    for data in dataset.take(1):
+        x_fake = un_normalize(net(data[0]))
+        x_real_a = un_normalize(data[0])
+        x_real_b = un_normalize(data[1])
+        imgs = [x_real_a, x_real_b, x_fake]
+        for ax, img in zip(axs, imgs):
+            ax.imshow(img)
+        plt.show()
+
+
 if __name__ == "__main__":
     with open('../parameters.yaml', 'r') as file:
         parameters = yaml.safe_load(file)
-    
+
     # Creating/Loading TF Records data
     train_dataset, val_dataset = get_dataset(parameters)
-    
+
     visualize_datasets(train_dataset, val_dataset)
-    
-    net = DeepWBnet(input_shape=(512, 512, 3)).get_model()
+
+    net = DeepWBnet(input_shape=(256, 256, 3)).get_model()
+
+    optimizer = tf.keras.optimizers.Adam(
+        lr=0.0001, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
+
+    net.compile(optimizer=optimizer, loss=tf.keras.losses.mean_absolute_error,
+                metrics=tf.keras.metrics.mean_absolute_error)
+
+    history = net.fit(train_dataset,
+                      batch_size=8,
+                        epochs=100,
+                        validation_data=val_dataset,
+                        val_batch_size=8)
+
     print(net.summary())
+    plot_sample_outputs(net, train_dataset, val=True)
     plot_model(net, "unet.png")
