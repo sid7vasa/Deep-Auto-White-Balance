@@ -20,7 +20,7 @@ Class: CS7180 - Advanced Perception <br>
 - Time travel days:
   - 2 days
 ### RESULTS:
-Examples: <br>
+Examples: in the order of Input, Ground Truth and Model output<br>
 ![image info](out/result_1.png)
 ![image info](out/result_2.png)
 ![image info](out/result_3.png)
