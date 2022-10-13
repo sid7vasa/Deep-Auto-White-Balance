@@ -14,7 +14,7 @@ Class: CS7180 - Advanced Perception <br>
 `export PYTHONPATH=${PYTHONPATH}:/path_to_project_folder`
 - Update parameters.yaml with the data location. 
 - link to datasets : <br>
-  - http://efrosgans.eecs.berkeley.edu/pix2pix/datasets/
+  - https://cvil.eecs.yorku.ca/projects/public_html/sRGB_WB_correction/dataset.html
 - Run python file train.py <br>
 `python3 train.py`
 - Time travel days:
