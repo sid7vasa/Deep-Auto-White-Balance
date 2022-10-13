@@ -1,0 +1,6 @@
+dataset:
+    data_dir:
+        train: 'C:\Users\santo\workspace\str\data\DAWB'
+        val: 'C:\Users\santo\workspace\str\data\DAWB'
+    batch_size: 1
+visualize: true
