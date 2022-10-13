@@ -2,19 +2,19 @@
 """
 Created on Mon Oct 10 18:56:48 2022
 
-@author: santo
+Name: Santosh Vasa, Vikram Bharadwaj
+Date: 10/12/2022
+Class: CS7180 - Advanced Perception
+
 """
 import os
-import argparse
-import logging
 import yaml
 
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
-from tqdm import tqdm
 from tensorflow.keras.utils import plot_model
-from models.unet import Generator, doubleConvBlock, downBlock, DeepWBnet
+from models.unet import DeepWBnet
 from dataset.utils import generate_tfrecords, load_tfrecords
 
 print(tf.test.is_gpu_available())
@@ -51,15 +51,13 @@ def get_dataset(parameters):
     return train_dataset, val_dataset
 
 
-def visualize_datasets(train_dataset, val_dataset):
+def visualize_datasets(train_dataset):
     """
     Visualize an example in the dataset by reversing the preprocessing steps.
     using matplotlib.
     Parameters
     ----------
     train_dataset : tf.data training instance
-        DESCRIPTION.
-    val_dataset : tf.data validation instance
         DESCRIPTION.
     Returns
     -------

@@ -2,7 +2,9 @@
 """
 Created on Tue Oct 11 23:17:33 2022
 
-@author: santo
+Name: Santosh Vasa, Vikram Bharadwaj
+Date: 10/12/2022
+Class: CS7180 - Advanced Perception
 """
 
 import tensorflow as tf
